@@ -4,11 +4,13 @@ import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -85,6 +87,38 @@ public class Utilities {
         }
 
         return iv;
+    }
+
+
+    public static byte[] calculateHMacSHA256(SecretKey key) {
+        Mac mac = null;
+        byte[] macResult = null;
+
+        try {
+            mac = Mac.getInstance("HmacSHA256");
+            mac.init(key);
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            e.printStackTrace();
+        }
+
+        try (InputStream is = Files.newInputStream(Paths.get("map.encrypted"))){
+            byte[] buff = new byte[4096];
+            while (true) {
+                int r = is.read(buff);
+                if (r < 1) {
+                    macResult = mac.doFinal();
+                    break;
+                }
+                // use just buff[0] - buff[r-1]
+                byte[] temp = new byte[r];
+                System.arraycopy(buff, 0, temp, 0, r);
+                mac.update(temp);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return macResult;
     }
 
 }

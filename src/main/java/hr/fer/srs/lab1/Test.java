@@ -23,13 +23,13 @@ public class Test {
 
         Map<String, String> passwords = new HashMap<>();
 
-        passwords.put("fer1", "123");
+        passwords.put("fer", "123");
 
         // placing the map on the disk
-//        FileOutputStream fos = new FileOutputStream("map.ser");
-//        ObjectOutputStream oos = new ObjectOutputStream(fos);
-//        oos.writeObject(passwords);
-//        oos.close();
+        FileOutputStream fos = new FileOutputStream("map.ser");
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(passwords);
+        oos.close();
 
 
         // generating IV
@@ -38,11 +38,11 @@ public class Test {
         randomSecureRandom.nextBytes(iv);
         IvParameterSpec ivParams = new IvParameterSpec(iv);
 
-        FileOutputStream osIv = new FileOutputStream("iv");
+        FileOutputStream osIv = new FileOutputStream("iv.cipher");
         osIv.write(iv);
         osIv.close();
 
-        FileInputStream isIV = new FileInputStream("iv");
+        FileInputStream isIV = new FileInputStream("iv.cipher");
         iv = isIV.readAllBytes();
         isIV.close();
 

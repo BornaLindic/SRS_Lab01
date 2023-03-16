@@ -4,6 +4,7 @@ import javax.crypto.SecretKey;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -13,28 +14,52 @@ public class PasswordManager {
 
         Scanner sc = new Scanner(System.in);
         String masterPassword;
-        byte[] iv = new byte[16];
-        Path in;
-        Path out;
+        byte[] ivCipher = new byte[16];
+        byte[] ivMac = new byte[16];
 
-        // read iv
+
+        // read initialization vectors
         try {
-            FileInputStream isIV = new FileInputStream("iv");
-            iv = isIV.readAllBytes();
-            isIV.close();
+            FileInputStream isIvC = new FileInputStream("iv.cipher");
+            ivCipher = isIvC.readAllBytes();
+            isIvC.close();
+
+            FileInputStream isIvM = new FileInputStream("iv.mac");
+            ivMac = isIvM.readAllBytes();
+            isIvM.close();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        // get the master password and generate key
+        // get the master password and generate keys
         System.out.println("Please enter your master password: ");
         masterPassword = sc.nextLine();
-        SecretKey secret = Utilities.generateSecretKey(masterPassword, iv);
+        SecretKey secretCipher = Utilities.generateSecretKey(masterPassword, ivCipher);
+        SecretKey secretMac = Utilities.generateSecretKey(masterPassword, ivMac);
+
+        //check integrity
+        byte[] storedMac = null;
+        byte[] calculatedMac;
+
+        try {
+            FileInputStream isMac = new FileInputStream("mac");
+            storedMac = isMac.readAllBytes();
+            isMac.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        calculatedMac = Utilities.calculateHMacSHA256(secretMac);
+
+        if(!Arrays.equals(storedMac, calculatedMac)) {
+            System.out.println("Integrity check failed!");
+            //System.exit(0);
+        } else System.out.println("Integrity check complete!\n");
 
         // decrypt file
-        in = Paths.get("map.encrypted");
-        out = Paths.get("map.decrypted");
-        Utilities.encryption(iv, secret, in, out, false);
+        Path in = Paths.get("map.encrypted");
+        Path out = Paths.get("map.decrypted");
+        Utilities.encryption(ivCipher, secretCipher, in, out, false);
 
         // load file
         Map<String, String> passwords = null;
@@ -75,7 +100,7 @@ public class PasswordManager {
         // store new map
         if(modified) {
             try {
-                FileOutputStream fos = new FileOutputStream("map.encrypted");
+                FileOutputStream fos = new FileOutputStream("map.decrypted");
                 ObjectOutputStream oos = new ObjectOutputStream(fos);
                 oos.writeObject(passwords);
                 oos.close();
@@ -84,21 +109,39 @@ public class PasswordManager {
             }
         }
 
-        // generate new iv
-        iv = Utilities.generateIv();
+        // generate new initialization vectors
+        ivCipher = Utilities.generateIv();
+        ivMac = Utilities.generateIv();
         try {
-            FileOutputStream osIv = new FileOutputStream("iv");
-            osIv.write(iv);
-            osIv.close();
+            FileOutputStream osIvC = new FileOutputStream("iv.cipher");
+            osIvC.write(ivCipher);
+            osIvC.close();
+
+            FileOutputStream osIvM = new FileOutputStream("iv.mac");
+            osIvM.write(ivMac);
+            osIvM.close();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        // generate key with new iv and encrypt
-        secret = Utilities.generateSecretKey(masterPassword, iv);
+        // generate cipher key with new iv and encrypt
+        secretCipher = Utilities.generateSecretKey(masterPassword, ivCipher);
         in = Paths.get("map.decrypted");
         out = Paths.get("map.encrypted");
-        Utilities.encryption(iv, secret, in, out, true);
+        Utilities.encryption(ivCipher, secretCipher, in, out, true);
+
+        //generate mac key with new iv and calculate mac
+        secretMac = Utilities.generateSecretKey(masterPassword, ivMac);
+        byte[] mac = Utilities.calculateHMacSHA256(secretMac);
+
+        try {
+            FileOutputStream osMac = new FileOutputStream("mac");
+            osMac.write(mac);
+            osMac.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         // delete decrypted file from the disk
         File map = new File("map.decrypted");
