@@ -53,7 +53,7 @@ public class PasswordManager {
 
         if(!Arrays.equals(storedMac, calculatedMac)) {
             System.out.println("Integrity check failed!");
-            //System.exit(0);
+            System.exit(0);
         } else System.out.println("Integrity check complete!\n");
 
         // decrypt file
