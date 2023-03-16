@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>hr.fer.oprpp1.java.jmbag0036529426</groupId>
-    <artifactId>hw05-0036529426</artifactId>
+    <groupId>hr.fer.srs.lab1.jmbag0036529426</groupId>
+    <artifactId>Cryptography</artifactId>
     <version>1.0</version>
 
     <properties>

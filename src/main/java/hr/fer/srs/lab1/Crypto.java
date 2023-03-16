@@ -1,4 +1,4 @@
-package hr.fer.oprpp1.hw05;
+package hr.fer.srs.lab1;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -6,7 +6,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;

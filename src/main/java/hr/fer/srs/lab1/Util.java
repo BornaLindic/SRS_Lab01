@@ -1,4 +1,4 @@
-package hr.fer.oprpp1.hw05;
+package hr.fer.srs.lab1;
 
 import java.math.BigInteger;
 
